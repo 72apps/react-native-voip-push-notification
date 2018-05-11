@@ -65,6 +65,16 @@ RCT_EXPORT_MODULE();
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
+
+- (dispatch_queue_t)methodQueue
+{
+    return dispatch_get_main_queue();
+}
+
++(BOOL)requiresMainQueueSetup {
+    return YES;
+}
+
 - (void)setBridge:(RCTBridge *)bridge
 {
     _bridge = bridge;
@@ -87,7 +97,7 @@ RCT_EXPORT_MODULE();
 {
     NSString *currentState = RCTCurrentAppBackgroundState();
     NSLog(@"[RNVoipPushNotificationManager] constantsToExport currentState = %@", currentState);
-    return @{@"wakeupByPush": (currentState == @"background") ? @"true" : @"false"};
+    return @{@"wakeupByPush": ([currentState  isEqual: @"background"]) ? @"true" : @"false"};
 }
 
 - (void)registerUserNotification:(NSDictionary *)permissions
@@ -121,7 +131,7 @@ RCT_EXPORT_MODULE();
     // Create a push registry object
     PKPushRegistry * voipRegistry = [[PKPushRegistry alloc] initWithQueue: mainQueue];
     // Set the registry's delegate to AppDelegate
-    voipRegistry.delegate = (RNVoipPushNotificationManager *)RCTSharedApplication().delegate;
+    voipRegistry.delegate =(id<PKPushRegistryDelegate>) RCTSharedApplication().delegate;
     // Set the push type to VoIP
     voipRegistry.desiredPushTypes = [NSSet setWithObject:PKPushTypeVoIP];
 }
@@ -169,22 +179,19 @@ RCT_EXPORT_MODULE();
 - (void)handleRemoteNotificationsRegistered:(NSNotification *)notification
 {
     NSLog(@"[RNVoipPushNotificationManager] handleRemoteNotificationsRegistered notification.userInfo = %@", notification.userInfo);
-    [_bridge.eventDispatcher sendDeviceEventWithName:@"voipRemoteNotificationsRegistered"
-                                                body:notification.userInfo];
+    [self sendEventWithName:@"voipRemoteNotificationsRegistered" body:notification.userInfo];
 }
 
 - (void)handleLocalNotificationReceived:(NSNotification *)notification
 {
     NSLog(@"[RNVoipPushNotificationManager] handleLocalNotificationReceived notification.userInfo = %@", notification.userInfo);
-    [_bridge.eventDispatcher sendDeviceEventWithName:@"voipLocalNotificationReceived"
-                                                body:notification.userInfo];
+    [self sendEventWithName:@"voipLocalNotificationReceived" body:notification.userInfo];
 }
 
 - (void)handleRemoteNotificationReceived:(NSNotification *)notification
 {
     NSLog(@"[RNVoipPushNotificationManager] handleRemoteNotificationReceived notification.userInfo = %@", notification.userInfo);
-    [_bridge.eventDispatcher sendDeviceEventWithName:@"voipRemoteNotificationReceived"
-                                                body:notification.userInfo];
+    [self sendEventWithName:@"voipRemoteNotificationReceived" body:notification.userInfo];
 }
 
 RCT_EXPORT_METHOD(requestPermissions:(NSDictionary *)permissions)

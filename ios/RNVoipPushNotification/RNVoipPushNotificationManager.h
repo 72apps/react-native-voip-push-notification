@@ -9,8 +9,9 @@
 #import <Foundation/Foundation.h>
 
 #import <React/RCTBridgeModule.h>
+#import <React/RCTEventEmitter.h>
 
-@interface RNVoipPushNotificationManager : NSObject <RCTBridgeModule>
+@interface RNVoipPushNotificationManager : RCTEventEmitter <RCTBridgeModule>
 
 - (void)voipRegistration;
 - (void)registerUserNotification:(NSDictionary *)permissions;
