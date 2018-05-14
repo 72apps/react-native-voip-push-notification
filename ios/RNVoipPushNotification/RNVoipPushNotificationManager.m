@@ -202,6 +202,9 @@ RCT_EXPORT_METHOD(requestPermissions:(NSDictionary *)permissions)
     if (RCTRunningInAppExtension()) {
         return;
     }
+    // Add a listener to make sure that startObserving has been called
+    [self addListener:@"voipRemoteNotificationsRegistered"];
+    
     [self registerUserNotification:permissions];
     [self voipRegistration];
 }
