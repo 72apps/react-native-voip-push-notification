@@ -93,6 +93,13 @@ RCT_EXPORT_MODULE();
                                                object:nil];
 }
 
+- (NSArray<NSString *> *)supportedEvents
+{
+    return @[@"voipRemoteNotificationsRegistered",
+             @"voipLocalNotificationReceived",
+             @"voipRemoteNotificationReceived"];
+}
+
 - (NSDictionary<NSString *, id> *)constantsToExport
 {
     NSString *currentState = RCTCurrentAppBackgroundState();
