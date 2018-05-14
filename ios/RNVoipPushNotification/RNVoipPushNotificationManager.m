@@ -58,14 +58,6 @@ static NSString *RCTCurrentAppBackgroundState()
 
 RCT_EXPORT_MODULE();
 
-@synthesize bridge = _bridge;
-
-- (void)dealloc
-{
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
-}
-
-
 - (dispatch_queue_t)methodQueue
 {
     return dispatch_get_main_queue();
@@ -75,10 +67,8 @@ RCT_EXPORT_MODULE();
     return YES;
 }
 
-- (void)setBridge:(RCTBridge *)bridge
+- (void)startObserving
 {
-    _bridge = bridge;
-
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(handleRemoteNotificationsRegistered:)
                                                  name:RNVoipRemoteNotificationsRegistered
@@ -92,6 +82,12 @@ RCT_EXPORT_MODULE();
                                                  name:RNVoipRemoteNotificationReceived
                                                object:nil];
 }
+
+- (void)stopObserving
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
 
 - (NSArray<NSString *> *)supportedEvents
 {
