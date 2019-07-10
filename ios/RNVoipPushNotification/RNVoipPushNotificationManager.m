@@ -44,6 +44,7 @@ static NSString *RCTCurrentAppBackgroundState()
     NSDictionary<NSString *, id> *details = [self NSDictionary:json];
     UILocalNotification *notification = [UILocalNotification new];
     notification.fireDate = [RCTConvert NSDate:details[@"fireDate"]] ?: [NSDate date];
+    notification.alertTitle = [RCTConvert NSString:details[@"alertTitle"]];
     notification.alertBody = [RCTConvert NSString:details[@"alertBody"]];
     notification.alertAction = [RCTConvert NSString:details[@"alertAction"]];
     notification.soundName = [RCTConvert NSString:details[@"soundName"]] ?: UILocalNotificationDefaultSoundName;
@@ -131,12 +132,14 @@ RCT_EXPORT_MODULE();
     NSLog(@"[RNVoipPushNotificationManager] voipRegistration");
 
     dispatch_queue_t mainQueue = dispatch_get_main_queue();
-    // Create a push registry object
-    PKPushRegistry * voipRegistry = [[PKPushRegistry alloc] initWithQueue: mainQueue];
-    // Set the registry's delegate to AppDelegate
-    voipRegistry.delegate =(id<PKPushRegistryDelegate>) RCTSharedApplication().delegate;
-    // Set the push type to VoIP
-    voipRegistry.desiredPushTypes = [NSSet setWithObject:PKPushTypeVoIP];
+    dispatch_async(mainQueue, ^{
+      // Create a push registry object
+      PKPushRegistry * voipRegistry = [[PKPushRegistry alloc] initWithQueue: mainQueue];
+      // Set the registry's delegate to AppDelegate
+      voipRegistry.delegate = (RNVoipPushNotificationManager *)RCTSharedApplication().delegate;
+      // Set the push type to VoIP
+      voipRegistry.desiredPushTypes = [NSSet setWithObject:PKPushTypeVoIP];
+    });
 }
 
 - (NSDictionary *)checkPermissions
@@ -205,8 +208,10 @@ RCT_EXPORT_METHOD(requestPermissions:(NSDictionary *)permissions)
     // Add a listener to make sure that startObserving has been called
     [self addListener:@"voipRemoteNotificationsRegistered"];
     
+  dispatch_async(dispatch_get_main_queue(), ^{
     [self registerUserNotification:permissions];
     [self voipRegistration];
+  });
 }
 
 RCT_EXPORT_METHOD(checkPermissions:(RCTResponseSenderBlock)callback)
@@ -221,7 +226,9 @@ RCT_EXPORT_METHOD(checkPermissions:(RCTResponseSenderBlock)callback)
 
 RCT_EXPORT_METHOD(presentLocalNotification:(UILocalNotification *)notification)
 {
-    [RCTSharedApplication() presentLocalNotificationNow:notification];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [RCTSharedApplication() presentLocalNotificationNow:notification];
+    });
 }
 
 @end
